@@ -1,8 +1,9 @@
-package amqp
+package work
 
 import (
-	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/pkg/errors"
+	"fmt"
+	"github.com/ThreeDotsLabs/watermill/message"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -59,10 +60,12 @@ func (cm CorrelatingMarshaler) Unmarshal(amqpMsg amqp.Delivery) (*message.Messag
 	msg.Metadata = make(message.Metadata)
 
 	for key, value := range amqpMsg.Headers {
-		var ok bool
-		msg.Metadata[key], ok = value.(string)
-		if !ok {
-			return nil, errors.Errorf("metadata %s is not a string, but %#v", key, value)
+
+		switch value.(type){
+		case string:
+			msg.Metadata[key] = value.(string)
+		default:
+			msg.Metadata[key] = fmt.Sprintf("%s", value)
 		}
 	}
 
